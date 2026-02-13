@@ -36,7 +36,7 @@
             color: #2c3e50;
             font-weight: bold;
         }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -92,6 +92,10 @@
                 <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
@@ -121,6 +125,7 @@
         document.getElementById('registerForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const userType = document.querySelector('input[name="userType"]:checked').value;
@@ -131,11 +136,41 @@
                 return;
             }
             
-            // Here you would typically send the data to your server
-            console.log('Registration data:', { username, password, userType });
+            // Create request data
+            const registerData = {
+                username: username,
+                email: email,
+                password: password
+                // Note: userType is not part of the API but we're collecting it anyway
+            };
             
-            // For demo purposes, just show an alert
-            alert('Registration functionality would be implemented here');
+            // Send registration request to API
+            fetch('/endpoints/auth_endpoint.php?action=register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Registration failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Registration successful:', data);
+                alert('Registration successful! Please login with your credentials.');
+                
+                // Redirect to login page
+                window.location.href = 'login.html';
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                alert('Registration failed: ' + error.message);
+            });
         });
     </script>
 </body>

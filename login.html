@@ -36,7 +36,7 @@
             color: #2c3e50;
             font-weight: bold;
         }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -76,8 +76,8 @@
         <h1>CAS Login</h1>
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -91,16 +91,57 @@
     </div>
 
     <script>
+        // Function to set cookies
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        // Function to handle login
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            // Here you would typically send the data to your server
-            console.log('Login attempt:', { username, password });
+            // Create request data
+            const loginData = {
+                email: email,
+                password: password
+            };
             
-            // For demo purposes, just show an alert
-            alert('Login functionality would be implemented here');
+            // Send login request to API
+            fetch('/endpoints/auth_endpoint.php?action=login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Login failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Login successful:', data);
+                
+                // Store user data in cookies
+                setCookie('user_id', data.user.id, 1);
+                setCookie('username', data.user.username, 1);
+                setCookie('token', data.token, 1);
+                
+                // Redirect to index page
+                window.location.href = 'index.html';
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                alert('Login failed: ' + error.message);
+            });
         });
     </script>
 </body>
